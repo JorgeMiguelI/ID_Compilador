@@ -1,2 +1,7 @@
-int x=0;
-int y=200;
+program {
+  int x, y, m;
+  if (x not true){
+      read y;
+      write y;
+  } fi 
+}

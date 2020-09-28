@@ -1,0 +1,11 @@
+program{
+    int y,var;
+    int z;
+    if (z>= #) then {
+        read y;
+        write y;
+    }fi
+}
+
+
+

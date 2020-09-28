@@ -18,6 +18,7 @@ namespace IDE
         private ArrayList Palabra = new ArrayList();
         int indice = 0;
         private Dictionary<string, Color> PalabrasReservadas = new Dictionary<string, Color>();
+        private string rutaArchivo ="";
         public Form1()
         {
             InitializeComponent();
@@ -55,16 +56,30 @@ namespace IDE
         private void Form1_Load(object sender, EventArgs e)
         {
             PalabrasReservadas.Add("int", Color.Blue);
-            PalabrasReservadas.Add("String", Color.LightBlue);
+            PalabrasReservadas.Add("string", Color.LightBlue);
             PalabrasReservadas.Add("for", Color.DarkViolet);
-            PalabrasReservadas.Add("Float", Color.ForestGreen);
-            PalabrasReservadas.Add("Double", Color.ForestGreen);
+            PalabrasReservadas.Add("float", Color.ForestGreen);
+            PalabrasReservadas.Add("double", Color.ForestGreen);
             PalabrasReservadas.Add("if", Color.DarkViolet);
             PalabrasReservadas.Add("else", Color.DarkViolet);
             PalabrasReservadas.Add("while", Color.DarkViolet);
             PalabrasReservadas.Add("switch", Color.DarkViolet);
             PalabrasReservadas.Add("case", Color.Blue);
             PalabrasReservadas.Add("cout", Color.Red);
+            PalabrasReservadas.Add("program", Color.Red);
+            PalabrasReservadas.Add("bool", Color.Blue);
+            PalabrasReservadas.Add("fi", Color.Blue);
+            PalabrasReservadas.Add("until", Color.Blue);
+            PalabrasReservadas.Add("read", Color.Blue);
+            PalabrasReservadas.Add("write", Color.Blue);
+            PalabrasReservadas.Add("not", Color.Blue);
+            PalabrasReservadas.Add("and", Color.Blue);
+            PalabrasReservadas.Add("then", Color.Blue);
+            PalabrasReservadas.Add("do", Color.Blue);
+            
+
+
+
 
         }
 
@@ -80,28 +95,198 @@ namespace IDE
 
         private void abrirToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            //Salvamos el Documento text
-            richTextBox1.SaveFile(openFileDialog1.FileName, RichTextBoxStreamType.RichText);
+   
+            if(!string.IsNullOrEmpty(openFileDialog1.FileName))
+            {
+                StreamWriter escribir = new StreamWriter(openFileDialog1.FileName);
+                foreach (object line in richTextBox1.Lines)
+                {
+                    escribir.WriteLine(line);
+                }
+                escribir.Close();
+            }
+            else if (!string.IsNullOrEmpty(saveFileDialog1.FileName))
+            {
+                StreamWriter escribir = new StreamWriter(saveFileDialog1.FileName);
+                foreach (object line in richTextBox1.Lines)
+                {
+                    escribir.WriteLine(line);
+                }
+                escribir.Close();
+            }
+            else
+            {
+                saveFileDialog1.Filter = "Documento de texto|*.txt";
+                saveFileDialog1.Title = "Documento de Texto";
+                saveFileDialog1.FileName = "Sin titulo 1";
+                var resultado = saveFileDialog1.ShowDialog();
+                if (resultado == DialogResult.OK)
+                {
+                    rutaArchivo = "";
+                    StreamWriter escribir = new StreamWriter(saveFileDialog1.FileName);
+                    foreach (object line in richTextBox1.Lines)
+                    {
+                        escribir.WriteLine(line);
+                    }
+                    rutaArchivo = saveFileDialog1.FileName;
+                    escribir.Close();
+                }
+            }
 
+        }
+
+        private void EjecutaAnalizadorLexico()
+        {
+         
+           /* treeView1.Nodes.Add("Parent");
+            treeView1.Nodes[0].Nodes.Add("1");
+            treeView1.Nodes[0].Nodes.Add("2");
+            treeView1.Nodes[0].Nodes[1].Nodes.Add("2");
+            treeView1.Nodes[0].Nodes[1].Nodes[0].Nodes.Add("Great Grandchild");
+            TreeNode buscado = treeView1.Nodes.Find("1", true)[0];
+            treeView1.SelectedNode = buscado;
+            treeView1.Nodes.Add("Hola");*/
+
+            //Borro la informacion que hay en los archivos que utilizare para mostrar los resultados de la compilacion
+             string ruta1 = "salida.txt";
+             string ruta2 = "errores.txt";
+             string ruta3 = "salidaSintactico.txt";
+             string ruta4 = "erroresSintactico.txt";
+             lblErrores.Text = "";
+             lblSalida.Text = "";
+             lblSalidaSintactico.Text = "";
+            try
+            {
+                File.WriteAllText(ruta1, "");
+                File.WriteAllText(ruta2, "");
+                File.WriteAllText(ruta3, "");
+                File.WriteAllText(ruta4, "");
+
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show("A ocurrido un error");
+            }
+            //Compilo mi analizador lexico
+            
+            int Y = 10;
+            try
+            {
+                string command = "go run main.go Scanner.go sintactico.go -archivo " + rutaArchivo;
+                ExecuteCommand(command);
+
+                //Mostramos los resultados del analisis
+                string[] lines = System.IO.File.ReadAllLines("salida.txt");
+                foreach (string line in lines)
+                {
+                    string[] resultado = line.Split(' ');
+
+                    dataGridView1.Rows.Add(resultado[0], resultado[1], resultado[2]);
+                    // Use a tab to indent each line of the file.
+                    //lblSalida.Text += line + "\n";
+                }
+
+                //Mostramos los resultados de los Sintacticos
+                string[] linesEr = System.IO.File.ReadAllLines("erroresSintactico.txt");
+                foreach (string line in linesEr)
+                {
+                 // Use a tab to indent each line of the file.
+                    lblErrores.Text += line + "\n";
+                }
+
+               //Mostramos los resultados del analisis Sintactico
+  
+                 string[] linesErSintactico = System.IO.File.ReadAllLines("salidaSintactico.txt");
+                 foreach (string line in linesErSintactico)
+                 {
+                    
+                   lblSalidaSintactico.Text += line + "\n";
+                 }
+                 
+             }
+             catch (Exception err)
+             {
+                 MessageBox.Show("Error no se ah podido compilar " + err.Message);
+             }
         }
 
         
 
         private void toolStripButton7_Click(object sender, EventArgs e)
         {
+      
+            if(!string.IsNullOrEmpty(rutaArchivo))
+            {
+                dataGridView1.Rows.Clear();
+                EjecutaAnalizadorLexico();
+                
+            }
+            else
+            {
+                saveFileDialog1.Filter = "Documento de texto|*.txt";
+                saveFileDialog1.Title = "Documento de Texto";
+                saveFileDialog1.FileName = "Sin titulo 1";
+                var resultado = saveFileDialog1.ShowDialog();
+                if (resultado == DialogResult.OK)
+                {
+                    rutaArchivo = "";
+                    StreamWriter escribir = new StreamWriter(saveFileDialog1.FileName);
+                    foreach (object line in richTextBox1.Lines)
+                    {
+                        escribir.WriteLine(line);
+                    }
+                    rutaArchivo = saveFileDialog1.FileName;
+                    escribir.Close();
+                }
+                EjecutaAnalizadorLexico();
+            }
             
+
+        }
+
+        private void ExecuteCommand(string _Command)
+        {
+            //Indicamos que deseamos inicializar el proceso cmd.exe junto a un comando de arranque. 
+            //(/C, le indicamos al proceso cmd que deseamos que cuando termine la tarea asignada se cierre el proceso).
+            //Para mas informacion consulte la ayuda de la consola con cmd.exe /? 
+            System.Diagnostics.ProcessStartInfo procStartInfo = new System.Diagnostics.ProcessStartInfo("cmd", "/c " + _Command);
+            // Indicamos que la salida del proceso se redireccione en un Stream
+            procStartInfo.RedirectStandardOutput = true;
+            procStartInfo.UseShellExecute = false;
+            //Indica que el proceso no despliegue una pantalla negra (El proceso se ejecuta en background)
+            procStartInfo.CreateNoWindow = false;
+            //Inicializa el proceso
+            System.Diagnostics.Process proc = new System.Diagnostics.Process();
+            proc.StartInfo = procStartInfo;
+            proc.Start();
+            //Consigue la salida de la Consola(Stream) y devuelve una cadena de texto
+            string result = proc.StandardOutput.ReadToEnd();
+            
+            //Muestra en pantalla la salida del Comando
+            //label1.Text = result.ToString();
 
         }
 
         private void abrirToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            //OpenFileDialog abrir = new OpenFileDialog();
+
+            openFileDialog1.Filter = "Documento de texto|*.txt";
+            openFileDialog1.Title = "Abrir";
+            openFileDialog1.FileName = "Sin titulo 1";
+            var resultado = openFileDialog1.ShowDialog();
+
+            if (resultado == DialogResult.OK)
             {
-                //Cargamos el documento rtf
-                richTextBox1.LoadFile(openFileDialog1.FileName);
+                rutaArchivo = "";
+                StreamReader leer = new StreamReader(openFileDialog1.FileName);
+                richTextBox1.Text = leer.ReadToEnd();
+                rutaArchivo = openFileDialog1.FileName;
+                leer.Close();
                 ScannerDoc();
                 
             }
+            
 
         }
 
@@ -112,10 +297,19 @@ namespace IDE
 
         private void toolStripButton3_Click(object sender, EventArgs e)
         {
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            openFileDialog1.Filter = "Documento de texto|*.txt";
+            openFileDialog1.Title = "Abrir";
+            openFileDialog1.FileName = "Sin titulo 1";
+            var resultado = openFileDialog1.ShowDialog();
+
+            if (resultado == DialogResult.OK)
             {
-                //Cargamos el documento rtf
-                richTextBox1.LoadFile(openFileDialog1.FileName);
+                rutaArchivo = "";
+                StreamReader leer = new StreamReader(openFileDialog1.FileName);
+                richTextBox1.Text = leer.ReadToEnd();
+                rutaArchivo = openFileDialog1.FileName;
+                leer.Close();
+                ScannerDoc();
             }
         }
 
@@ -144,22 +338,19 @@ namespace IDE
 
         private void toolStripButton2_Click(object sender, EventArgs e)
         {
-            SaveFileDialog guardar = new SaveFileDialog();
-
-
-            guardar.Filter = "Documento de texto|*.txt";
-            guardar.Title = "Guardar RichTextBox";
-            guardar.FileName = "Sin titulo 1";
-            var resultado = guardar.ShowDialog();
+            saveFileDialog1.Filter = "Documento de texto|*.txt";
+            saveFileDialog1.Title = "Documento de Texto";
+            saveFileDialog1.FileName = "Sin titulo 1";
+            var resultado = saveFileDialog1.ShowDialog();
             if (resultado == DialogResult.OK)
             {
-
-                StreamWriter escribir = new StreamWriter(guardar.FileName);
+                rutaArchivo = "";
+                StreamWriter escribir = new StreamWriter(saveFileDialog1.FileName);
                 foreach (object line in richTextBox1.Lines)
                 {
                     escribir.WriteLine(line);
                 }
-
+                rutaArchivo = saveFileDialog1.FileName;
                 escribir.Close();
             }
 
@@ -185,26 +376,23 @@ namespace IDE
 
         private void salirToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SaveFileDialog guardar = new SaveFileDialog();
+            //SaveFileDialog guardar = new SaveFileDialog();
 
 
-            guardar.Filter = "Documento de texto|*.txt";
-            guardar.Title = "Guardar RichTextBox";
-            guardar.FileName = "Sin titulo 1";
-            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            saveFileDialog1.Filter = "Documento de texto|*.txt";
+            saveFileDialog1.Title = "Documento de Texto";
+            saveFileDialog1.FileName = "Sin titulo 1";
+            var resultado = saveFileDialog1.ShowDialog();
+            if (resultado == DialogResult.OK)
             {
-                StreamWriter escribir = new StreamWriter(guardar.FileName);
+                rutaArchivo = "";
+                StreamWriter escribir = new StreamWriter(saveFileDialog1.FileName);
                 foreach (object line in richTextBox1.Lines)
                 {
                     escribir.WriteLine(line);
                 }
-
+                rutaArchivo = saveFileDialog1.FileName;
                 escribir.Close();
-
-                //Salvamos el Documento text
-                richTextBox1.SaveFile(saveFileDialog1.FileName, RichTextBoxStreamType.RichText);
-                
-
             }
         }
 
@@ -311,6 +499,7 @@ namespace IDE
             if(e.KeyChar == Convert.ToChar(Keys.Space))
             {
            checaPalabra();
+                //ScannerDoc();
             }
             else
             {
@@ -341,6 +530,29 @@ namespace IDE
             }
         }
 
-        
+        private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
+        {
+
+        }
+
+        private void toolStripButton5_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void tabPage2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void richTextBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
